@@ -69,6 +69,7 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
 app.post("/urls", (req, res) => {
   console.log(req.body);
   const shortURL = generateRandomString(6);
@@ -76,6 +77,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = longURL;
   res.redirect(`urls/${shortURL}`)
 });
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
@@ -95,10 +97,6 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
-
-  // const userID = req.cookies(userID);
-
   if (email === "" || password === "") {
     res.sendStatus(403);
   } else {
@@ -117,61 +115,21 @@ app.post("/login", (req, res) => {
       res.sendStatus(403);
     }
   }
-  // if (findUser(email)) {
-  //   res.cookie("userID", userID)
-  //   // userData[username] = username;
-  //   // console.log(userData);
-  //   res.redirect("/urls");
-  // } else {
-  //   res.send("bad login");
-  // }for (const userId in users) {
-  // if (users[userId].email === email && users[userId].password === password) {
-  //   res.sendStatus(403);
-  // }
-  // if (findUser(email)) {
-  //   res.sendStatus(400);
-  //   return;
-  // }
-  // //1. Check whether the useremail and password are there
-  // //2. If Yes(email, password){
-  // if (email == "") {
-  //   res.sendStatus(403);
-  // }
-  // if (findUser(email)) {
-  //   if (users[userID].password !== password) {
-  // res.sendStatus(403);}
-  //  else {
-
-  // }
-
-  //     if ( matcghes){
-  //   return usermatched
-  // } else {
-  //   username / password does not match
-  // }
-  //           } else {
-  //   email does not exists in the urlDatabase.
-  //           }
-  //         else {
-  //   please enter the username and password.they can't be null
-  // }
-  //   //}
-  //   //
-
 });
 
 app.get("/login", (req, res) => {
   const user = users[req.cookies.userID]
-
   let templateVars = {
     user: user
   }
   res.render("login", templateVars);
 })
+
 app.post("/logout", (req, res) => {
   res.clearCookie("userID");
   res.redirect("/urls");
 })
+
 app.get("/registration", (req, res) => {
   const user = users[req.cookies.userID]
   let templateVars = {
@@ -185,11 +143,6 @@ app.post("/registration", (req, res) => {
   const password = req.body.password;
   const userID = generateRandomString(6);
   users[userID] = {};
-  //check if email already exists
-  //use found user with email
-  //if true then duplicate email
-  // if false then allow user to make us
-  // const FoundUserWithEmail = 
   if (email == '' && password == '') {
     res.sendStatus(400);
     return;
@@ -203,17 +156,9 @@ app.post("/registration", (req, res) => {
   users[userID].password = password;
   res.cookie("userID", userID);
   console.log(users)
-  //make a function that loops through the users and finds a matching email
   res.redirect("/urls");
 });
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
-
-
-
-
 
