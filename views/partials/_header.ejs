@@ -12,26 +12,19 @@
       </div>
 
     </div>
-    <label for="username">
-      <% if (username) { %>
+
+    <% if (user) { %>
       <form method="POST" action="/logout">
         <label for="logout">
-          <h5>Logged In as: <%= username %>!</h5>
-          <input type="text" name="username" value="<%= username %>" />
+          <h5>Logged In as: <%= user.email %>!</h5>
           <button type="submit">LogOut</button>
         </label>
       </form>
-      <% } else{ %>
+    <% } else{ %>
+      <a href="/login">Login</a> 
+       <a href="/registration">Register</a>
+    <% } %>
 
-      <form action="/login" method="POST">
-        <p>Username</p>
-        <input name="username">
-        <!-- <p>Password</p>
-        <input name="password"> -->
-        <input type="submit" value="Login" />
-      </form>
-      <% } %>
-
-      </div>
+    </div>
   </nav>
 </header>

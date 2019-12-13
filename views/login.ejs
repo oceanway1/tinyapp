@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body>
+    <%- include('partials/_header') %>
+<h1>LOGIN PAGE</h1>
+  <form action="/login" method="POST">
+    <p>EmailID</p>
+    <input name="email" type="email">
+    <p>Password</p>
+    <input name="password" type="password" />
+    <button type="submit">Login</button>
+  </form>
+</body>
+
+</html>
