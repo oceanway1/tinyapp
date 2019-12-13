@@ -14,7 +14,6 @@
 
 <body>    
     <%- include('partials/_header') %>
-
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -29,7 +28,7 @@
         <% for(let url in urls) { %>
         <tr>
           <td><%= url %></td>
-          <td><%= urls[url] %></td>  
+          <td><%= urls[url].longURL %></td>  
           <td><a href="<%=`/urls/${url}/edit`%>">edit</a></td>
           <td><form method="POST" action="<%=`/urls/${url}/delete`%>"><button type= "Submit">Delete</button></form></td>
 

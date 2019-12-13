@@ -8,6 +8,7 @@ function generateRandomString(n) {
   return result;
 };
 
+
 const findUser = email => {
   for (let id in users) {
     if (users[id].email === email) {
@@ -16,6 +17,19 @@ const findUser = email => {
   }
   return null;
 }
+
+
+const urlsForUser = id => {
+  const allURLs = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      allURLs[shortURL] = urlDatabase[shortURL];
+    }
+  }
+
+  return allURLs;
+}
+
 
 
 const express = require("express");
@@ -34,29 +48,45 @@ const users = {
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
-  "user2RandomID": {
-    id: "user2RandomID",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
 }
 
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "userRandomID" }
 };
 
-
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies.userID]
-  let templateVars = { urls: urlDatabase, user: user };
-  res.render("urls_index", templateVars);
+  const userID = req.cookies.userID;
+  if (userID) {
+    console.log('in urls handler - userID:', userID);
+    const userURLs = urlsForUser(userID);
+    if (userURLs) {
+      const user = users[req.cookies.userID]
+      let templateVars = { urls: userURLs, user: user };
+      res.render("urls_index", templateVars);
+    }
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies.userID]
-  let templateVars = { user: user };
-  res.render("urls_new", templateVars);
+  const userID = req.cookies.userID;
+  // const password = req.body.password;
+  // const user = findUser(email);
+  if (userID) {
+    const user = users[userID]
+    let templateVars = { user: user };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login")
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -155,7 +185,6 @@ app.post("/registration", (req, res) => {
   users[userID].email = email;
   users[userID].password = password;
   res.cookie("userID", userID);
-  console.log(users)
   res.redirect("/urls");
 });
 app.listen(PORT, () => {
