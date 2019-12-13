@@ -52,20 +52,35 @@ const users = {
     id: "aJ48lW",
     email: "user2@example.com",
     password: "dishwasher-funk"
+  },
+  "aJ00lW": {
+    id: "aJ00lW",
+    email: "user3@example.com",
+    password: "dishwasher-funk"
+  },
+  "abc123": {
+    id: "abc123",
+    email: "user4@example.com",
+    password: "dishwasher-funk"
   }
 }
 
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "userRandomID" }
+  i3BoGr: { longURL: "https://www.facebook.ca", userID: "userRandomID" },
+  b34KGO: { longURL: "https://www.tsn.ca", userID: "aJ00lW" },
+  i3BoGR: { longURL: "https://www.lighthouselabs.ca", userID: "abc123" }
+
 };
 
 app.get("/urls", (req, res) => {
   const userID = req.cookies.userID;
   if (userID) {
-    console.log('in urls handler - userID:', userID);
     const userURLs = urlsForUser(userID);
+    console.log(userURLs);
+    console.log(urlDatabase);
+    console.log(userID);
     if (userURLs) {
       const user = users[req.cookies.userID]
       let templateVars = { urls: userURLs, user: user };
@@ -78,16 +93,16 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const userID = req.cookies.userID;
-  // const password = req.body.password;
-  // const user = findUser(email);
+  const userURLs = urlsForUser(userID);
   if (userID) {
     const user = users[userID]
-    let templateVars = { user: user };
+    let templateVars = { urls: userURLs, user: user };
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
   }
 });
+
 
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.cookies.userID]
@@ -95,34 +110,46 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);
   const shortURL = generateRandomString(6);
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies.userID
+  };
   res.redirect(`urls/${shortURL}`)
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
-})
 
 app.post("/urls/:shortURL", (req, res) => {
   let newLongURL = req.body.longURL;
   urlDatabase[req.params.shortURL] = newLongURL;
-  console.log(newLongURL);
   res.redirect("/urls");
 })
 
-app.post("/urls/:id", (req, res) => {
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const userID = req.cookies.userID;
+  if (userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  }
   res.redirect("/urls");
 })
+
+
+app.post("/urls/:id", (req, res) => {
+  const userID = req.cookies.userID;
+  if (userID) {
+    res.redirect("/urls");
+  }
+})
+
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
@@ -130,12 +157,9 @@ app.post("/login", (req, res) => {
   if (email === "" || password === "") {
     res.sendStatus(403);
   } else {
-    //find the email 
     let user = findUser(email);
     if (user) {
-      //check the password 
       if (user.password === password) {
-        //everything is fine
         res.cookie("userID", user.id);
         res.redirect("/urls");
       } else {
@@ -146,6 +170,7 @@ app.post("/login", (req, res) => {
     }
   }
 });
+
 
 app.get("/login", (req, res) => {
   const user = users[req.cookies.userID]
@@ -168,6 +193,7 @@ app.get("/registration", (req, res) => {
   res.render("registration", templateVars);
 })
 
+
 app.post("/registration", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -187,6 +213,8 @@ app.post("/registration", (req, res) => {
   res.cookie("userID", userID);
   res.redirect("/urls");
 });
+
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
