@@ -36,11 +36,15 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieSession = require('cookie-session')
 const cookies = require('cookie-parser')
 const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-app.use(cookies());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['ayy', 'what', 'up', 'my', 'dudes', 'it is wednesday'],
+}))
 
 const users = {
   "userRandomID": {
@@ -56,12 +60,12 @@ const users = {
   "aJ00lW": {
     id: "aJ00lW",
     email: "user3@example.com",
-    password: "dishwasher-funk"
+    password: "abcdef"
   },
   "abc123": {
     id: "abc123",
     email: "user4@example.com",
-    password: "dishwasher-funk"
+    password: "12345"
   }
 }
 
@@ -71,18 +75,17 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.facebook.ca", userID: "userRandomID" },
   b34KGO: { longURL: "https://www.tsn.ca", userID: "aJ00lW" },
   i3BoGR: { longURL: "https://www.lighthouselabs.ca", userID: "abc123" }
-
 };
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies.userID;
+  const userID = req.session.userID;
   if (userID) {
     const userURLs = urlsForUser(userID);
     console.log(userURLs);
     console.log(urlDatabase);
     console.log(userID);
     if (userURLs) {
-      const user = users[req.cookies.userID]
+      const user = users[req.session.userID]
       let templateVars = { urls: userURLs, user: user };
       res.render("urls_index", templateVars);
     }
@@ -92,11 +95,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies.userID;
-  const userURLs = urlsForUser(userID);
+  const userID = req.session.userID;
   if (userID) {
     const user = users[userID]
-    let templateVars = { urls: userURLs, user: user };
+    let templateVars = { user: user };
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -104,51 +106,76 @@ app.get("/urls/new", (req, res) => {
 });
 
 
+// JH sez: buggy.  also no auth.
 app.get("/urls/:shortURL", (req, res) => {
-  const user = users[req.cookies.userID]
+  const user = users[req.session.userID]
   let templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL, user: user };
   res.render("urls_show", templateVars);
 });
 
-
+// JH sez: buggy
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
 
+// JH sez: not exactly buggy, but no auth
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies.userID
+    userID: req.session.userID
   };
   res.redirect(`urls/${shortURL}`)
 });
 
 
+// JH sez: buggy.  also no auth.
 app.post("/urls/:shortURL", (req, res) => {
+  console.log('running app.post("/urls/:shortURL');
   let newLongURL = req.body.longURL;
   urlDatabase[req.params.shortURL] = newLongURL;
   res.redirect("/urls");
 })
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.cookies.userID;
-  if (userID) {
+  const userID = req.session.userID;
+  if (userID) {     // this auth is fucked
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   }
-  res.redirect("/urls");
+  res.redirect("/urls");      // this throws errors, don't be mean to your ops
 })
 
-
-app.post("/urls/:id", (req, res) => {
-  const userID = req.cookies.userID;
+app.get("/urls/:shortURL/edit", (req, res) => {   // I don't know what this is for
+  const userID = req.session.userID;
   if (userID) {
-    res.redirect("/urls");
+    res.redirect("/urls/:shortURL");
+  }
+  else {
+    res.redirect("/login");
+  }
+});
+
+
+// JH sez: is this doing anything?  if it's not, should it be?
+// also, no POST should .render
+app.post("/urls/:shortURL/edit", (req, res) => {
+  console.log("holy shit let us edit ths muh fuh url")
+  const userID = req.session.userID;
+  if (userID) {
+    // console.log('huh', userID)
+    newLongURL = reg.body.longURL;
+    let templateVars = { shortURL: req.params.shortURL, longURL: newLongURL, user: user };
+    console.log("template Vars",templateVars)
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect("/login");
   }
 })
+
+
 
 
 app.post("/login", (req, res) => {
@@ -160,7 +187,7 @@ app.post("/login", (req, res) => {
     let user = findUser(email);
     if (user) {
       if (bcrypt.compareSync(password, user.password)) {
-        res.cookie("userID", user.id);
+        req.session.userID = user.id;
         res.redirect("/urls");
       } else {
         res.sendStatus(403);
@@ -173,20 +200,25 @@ app.post("/login", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-  const user = users[req.cookies.userID]
-  let templateVars = {
-    user: user
+  const user = users[req.session.userID]
+  if (user) {
+    res.redirect('/urls');
+  } else {
+    let templateVars = {
+      user: null
+    }
+    res.render("login", templateVars);
   }
-  res.render("login", templateVars);
-})
+});
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("userID");
+  req.session = null
+  // res.clearCookie("userID");
   res.redirect("/urls");
 })
 
 app.get("/registration", (req, res) => {
-  const user = users[req.cookies.userID]
+  const user = users[req.session.userID]
   let templateVars = {
     user: user
   };
@@ -198,8 +230,7 @@ app.post("/registration", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const userID = generateRandomString(6);
-  users[userID] = {};
-  if (email == '' && password == '') {
+  if (email === '' && password === '') {
     res.sendStatus(400);
     return;
   }
@@ -208,10 +239,12 @@ app.post("/registration", (req, res) => {
     return;
   }
   const hashedPassword = bcrypt.hashSync(password, 10);
-  users[userID].id = userID;
-  users[userID].email = email;
-  users[userID].password = hashedPassword;
-  res.cookie("userID", userID);
+  users[userID] = {
+    id: userID,
+    email: email,
+    password: hashedPassword,
+  };
+  req.session.userID = userID;
   res.redirect("/urls");
 });
 
