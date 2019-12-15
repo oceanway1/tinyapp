@@ -10,14 +10,17 @@
 </head>
 
 <body>
-    <%- include('partials/_header') %>
+    <!-- <%- include('partials/_header') %> -->
 <h1>LOGIN PAGE</h1>
   <form action="/login" method="POST">
-    <p>EmailID</p>
+    <p>Email ID</p>
     <input name="email" type="email">
     <p>Password</p>
     <input name="password" type="password" />
     <button type="submit">Login</button>
+  </form>
+  <form method="GET" action="/register">
+    <p class="message">Are you register? <a href="/registration"> If not, Create an Account</a></p>
   </form>
 </body>
 

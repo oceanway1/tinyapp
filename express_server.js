@@ -23,12 +23,15 @@ const urlsForUser = id => {
   const allURLs = {};
   for (let shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
-      allURLs[shortURL] = urlDatabase[shortURL];
+      allURLs[shortURL] = urlDatabase[shortURL].longURL;
     }
   }
 
   return allURLs;
 }
+
+// 1. Written some ConvolverNode
+
 
 
 
@@ -71,33 +74,34 @@ const users = {
 
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.facebook.ca", userID: "userRandomID" },
-  b34KGO: { longURL: "https://www.tsn.ca", userID: "aJ00lW" },
-  i3BoGR: { longURL: "https://www.lighthouselabs.ca", userID: "abc123" }
+  b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "http://www.facebook.ca", userID: "userRandomID" },
+  b34KGO: { longURL: "http://www.tsn.ca", userID: "aJ00lW" },
+  i3BoGR: { longURL: "http://www.lighthouselabs.ca", userID: "abc123" }
 };
 
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
+// pretty sure no bug!
 app.get("/urls", (req, res) => {
-  const userID = req.session.userID;
-  if (userID) {
-    const userURLs = urlsForUser(userID);
-    console.log(userURLs);
-    console.log(urlDatabase);
-    console.log(userID);
-    if (userURLs) {
-      const user = users[req.session.userID]
-      let templateVars = { urls: userURLs, user: user };
-      res.render("urls_index", templateVars);
-    }
+  //const id = req.params.id;
+  let userid = users[req.session.userID].id;
+  const userURLs = urlsForUser(userid);
+  if (userURLs) {
+    const user = users[req.session.userID].id
+    let templateVars = { urls: userURLs, user: user };
+    res.render("urls_index", templateVars);
   } else {
     res.redirect("/login");
   }
 });
 
+
 app.get("/urls/new", (req, res) => {
-  const userID = req.session.userID;
-  if (userID) {
-    const user = users[userID]
+  const user = users[req.session.userID]
+  if (user) {
+    console.log("running for sure")
     let templateVars = { user: user };
     res.render("urls_new", templateVars);
   } else {
@@ -109,26 +113,55 @@ app.get("/urls/new", (req, res) => {
 // JH sez: buggy.  also no auth.
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.userID]
-  let templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL, user: user };
-  res.render("urls_show", templateVars);
+  if (user) {
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: user };
+    res.render("urls_show", templateVars);
+  }
+  else {
+    res.redirect("/login");
+  }
 });
 
 // JH sez: buggy
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  res.redirect(`${longURL}`);
 });
 
 
-// JH sez: not exactly buggy, but no auth
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session.userID
   };
+  console.log("after creating the new url is :", urlDatabase);
   res.redirect(`urls/${shortURL}`)
 });
+
+
+app.post("/urls/:id", (req, res) => {
+  // b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
+
+  const nURL = req.body.newURL;
+  const id = req.params.id;
+  console.log(typeof id);
+  const user = users[req.session.userID]
+  console.log("test ");
+  console.log("id", id);
+  console.log("user ", user);
+  if (user) {
+    urlDatabase[id].longURL = nURL;
+    //urlDatabase[id].userID = user;
+    console.log("after changing");
+    console.log("new urls ", urlDatabase);
+    res.redirect("/urls");
+  } else {
+    res.send("please login ");
+  }
+
+});
+
 
 
 // JH sez: buggy.  also no auth.
@@ -139,43 +172,15 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 })
 
+
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.session.userID;
-  if (userID) {     // this auth is fucked
+  const email = req.body.email;
+  if (findUser(email)) {     // this auth is fucked
     delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls");
-  }
-  res.redirect("/urls");      // this throws errors, don't be mean to your ops
-})
-
-app.get("/urls/:shortURL/edit", (req, res) => {   // I don't know what this is for
-  const userID = req.session.userID;
-  if (userID) {
-    res.redirect("/urls/:shortURL");
-  }
-  else {
-    res.redirect("/login");
-  }
-});
-
-
-// JH sez: is this doing anything?  if it's not, should it be?
-// also, no POST should .render
-app.post("/urls/:shortURL/edit", (req, res) => {
-  console.log("holy shit let us edit ths muh fuh url")
-  const userID = req.session.userID;
-  if (userID) {
-    // console.log('huh', userID)
-    newLongURL = reg.body.longURL;
-    let templateVars = { shortURL: req.params.shortURL, longURL: newLongURL, user: user };
-    console.log("template Vars",templateVars)
-    res.render("urls_show", templateVars);
   } else {
-    res.redirect("/login");
-  }
+    res.redirect("/urls");
+  }     // this throws errors, don't be mean to your ops
 })
-
-
 
 
 app.post("/login", (req, res) => {
@@ -213,7 +218,6 @@ app.get("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null
-  // res.clearCookie("userID");
   res.redirect("/urls");
 })
 
