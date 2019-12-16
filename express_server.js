@@ -1,39 +1,3 @@
-function generateRandomString(n) {
-  let result = '';
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < n; i++) {
-    const random = Math.floor(Math.random() * 60);
-    result += chars[random];
-  }
-  return result;
-};
-
-
-const findUser = email => {
-  for (let id in users) {
-    if (users[id].email === email) {
-      return users[id];
-    }
-  }
-  return null;
-}
-
-
-const urlsForUser = id => {
-  const allURLs = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      allURLs[shortURL] = urlDatabase[shortURL].longURL;
-    }
-  }
-
-  return allURLs;
-}
-
-// 1. Written some ConvolverNode
-
-
-
 
 const express = require("express");
 const app = express();
@@ -60,18 +24,7 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   },
-  "aJ00lW": {
-    id: "aJ00lW",
-    email: "user3@example.com",
-    password: "abcdef"
-  },
-  "abc123": {
-    id: "abc123",
-    email: "user4@example.com",
-    password: "12345"
-  }
 }
-
 
 const urlDatabase = {
   b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
@@ -83,9 +36,10 @@ const urlDatabase = {
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
+
+
 // pretty sure no bug!
 app.get("/urls", (req, res) => {
-  //const id = req.params.id;
   let userid = users[req.session.userID].id;
   const userURLs = urlsForUser(userid);
   if (userURLs) {
@@ -141,27 +95,16 @@ app.post("/urls", (req, res) => {
 
 
 app.post("/urls/:id", (req, res) => {
-  // b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
-
   const nURL = req.body.newURL;
   const id = req.params.id;
-  console.log(typeof id);
   const user = users[req.session.userID]
-  console.log("test ");
-  console.log("id", id);
-  console.log("user ", user);
   if (user) {
     urlDatabase[id].longURL = nURL;
-    //urlDatabase[id].userID = user;
-    console.log("after changing");
-    console.log("new urls ", urlDatabase);
     res.redirect("/urls");
   } else {
     res.send("please login ");
   }
-
 });
-
 
 
 // JH sez: buggy.  also no auth.
@@ -175,11 +118,11 @@ app.post("/urls/:shortURL", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const email = req.body.email;
-  if (findUser(email)) {     // this auth is fucked
+  if (findUser(email)) {
     delete urlDatabase[req.params.shortURL];
   } else {
     res.redirect("/urls");
-  }     // this throws errors, don't be mean to your ops
+  }
 })
 
 
@@ -216,10 +159,12 @@ app.get("/login", (req, res) => {
   }
 });
 
+
 app.post("/logout", (req, res) => {
   req.session = null
   res.redirect("/urls");
 })
+
 
 app.get("/registration", (req, res) => {
   const user = users[req.session.userID]
@@ -253,7 +198,34 @@ app.post("/registration", (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+const generateRandomString = n => {
+  let result = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < n; i++) {
+    const random = Math.floor(Math.random() * 60);
+    result += chars[random];
+  }
+  return result;
+};
 
+
+const findUser = email => {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return users[id];
+    }
+  }
+  return null;
+}
+
+
+const urlsForUser = id => {
+  const allURLs = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      allURLs[shortURL] = urlDatabase[shortURL].longURL;
+    }
+  }
+
+  return allURLs;
+}
