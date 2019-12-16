@@ -1,4 +1,38 @@
 
+const generateRandomString = n => {
+  let result = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < n; i++) {
+    const random = Math.floor(Math.random() * 60);
+    result += chars[random];
+  }
+  return result;
+};
+
+
+const findUser = email => {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return users[id];
+    }
+  }
+  return null;
+}
+
+
+const urlsForUser = id => {
+  const allURLs = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      allURLs[shortURL] = urlDatabase[shortURL].longURL;
+    }
+  }
+
+  return allURLs;
+}
+
+
+
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -197,35 +231,6 @@ app.post("/registration", (req, res) => {
   res.redirect("/urls");
 });
 
-
-const generateRandomString = n => {
-  let result = '';
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < n; i++) {
-    const random = Math.floor(Math.random() * 60);
-    result += chars[random];
-  }
-  return result;
-};
-
-
-const findUser = email => {
-  for (let id in users) {
-    if (users[id].email === email) {
-      return users[id];
-    }
-  }
-  return null;
-}
-
-
-const urlsForUser = id => {
-  const allURLs = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      allURLs[shortURL] = urlDatabase[shortURL].longURL;
-    }
-  }
-
-  return allURLs;
-}
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
