@@ -13,6 +13,26 @@ app.use(cookieSession({
   keys: ['ayy', 'what', 'up', 'my', 'dudes', 'it is wednesday'],
 }))
 
+const users = {};
+// const users = {
+//   "userRandomID": {
+//     id: "userRandomID",
+//     email: "user@example.com",
+//     password: "purple-monkey-dinosaur"
+//   },
+//   "aJ48lW": {
+//     id: "aJ48lW",
+//     email: "user2@example.com",
+//     password: "dishwasher-funk"
+//   },
+// }
+
+const urlDatabase = {
+  b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "http://www.facebook.ca", userID: "userRandomID" },
+  b34KGO: { longURL: "http://www.tsn.ca", userID: "aJ00lW" },
+  i3BoGR: { longURL: "http://www.lighthouselabs.ca", userID: "abc123" }
+};
 
 
 app.get("/", (req, res) => {
@@ -22,15 +42,17 @@ app.get("/", (req, res) => {
 
 // pretty sure no bug!
 app.get("/urls", (req, res) => {
-  let userid = users[req.session.userID].id;
-  const userURLs = urlsForUser(userid);
-  if (userURLs) {
-    const user = users[req.session.userID].id
-    let templateVars = { urls: userURLs, user: user };
-    res.render("urls_index", templateVars);
-  } else {
-    res.redirect("/login");
+  const user = users[req.session.userID]
+  if (!user) {
+    return res.redirect("/login")
   }
+  let userid = users[req.session.userID].id;
+  const userURLs = urlsForUser(userid,urlDatabase);
+  // const user = users[req.session.userID]
+  console.log(users);
+  let templateVars = { urls: userURLs, user: user };
+  res.render("urls_index", templateVars);
+
 });
 
 
@@ -99,8 +121,8 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const email = req.body.email;
-  if (findUser(email)) {
+  const user = users[req.session.userID]
+  if (user) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   }

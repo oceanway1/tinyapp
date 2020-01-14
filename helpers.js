@@ -1,3 +1,24 @@
+// const users = {
+//   "userRandomID": {
+//     id: "userRandomID",
+//     email: "user@example.com",
+//     password: "purple-monkey-dinosaur"
+//   },
+//   "aJ48lW": {
+//     id: "aJ48lW",
+//     email: "user2@example.com",
+//     password: "dishwasher-funk"
+//   },
+// }
+const users ={};
+
+ 
+// const urlDatabase = {
+//   shortURL: {longURL: '', username: ""},
+//   shortURL: {longURL: '', username: "" }
+// };
+
+
 
 const generateRandomString = n => {
   let result = '';
@@ -20,7 +41,9 @@ const findUser = email => {
 }
 
 
-const urlsForUser = id => {
+const urlsForUser = (id,urlDatabase) => {
+  console.log(urlDatabase)
+  console.log(id)
   const allURLs = {};
   for (let shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
