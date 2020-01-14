@@ -1,45 +1,11 @@
 
-const generateRandomString = n => {
-  let result = '';
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < n; i++) {
-    const random = Math.floor(Math.random() * 60);
-    result += chars[random];
-  }
-  return result;
-};
-
-
-const findUser = email => {
-  for (let id in users) {
-    if (users[id].email === email) {
-      return users[id];
-    }
-  }
-  return null;
-}
-
-
-const urlsForUser = id => {
-  const allURLs = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      allURLs[shortURL] = urlDatabase[shortURL].longURL;
-    }
-  }
-
-  return allURLs;
-}
-
-
-
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session')
-const cookies = require('cookie-parser')
 const bcrypt = require('bcrypt');
+const { generateRandomString, findUser, urlsForUser } = require('./helpers');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.use(cookieSession({
@@ -47,25 +13,7 @@ app.use(cookieSession({
   keys: ['ayy', 'what', 'up', 'my', 'dudes', 'it is wednesday'],
 }))
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-}
 
-const urlDatabase = {
-  b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "http://www.facebook.ca", userID: "userRandomID" },
-  b34KGO: { longURL: "http://www.tsn.ca", userID: "aJ00lW" },
-  i3BoGR: { longURL: "http://www.lighthouselabs.ca", userID: "abc123" }
-};
 
 app.get("/", (req, res) => {
   res.redirect("/login");

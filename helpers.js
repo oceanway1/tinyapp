@@ -1,3 +1,4 @@
+
 const generateRandomString = n => {
   let result = '';
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -9,7 +10,7 @@ const generateRandomString = n => {
 };
 
 
-const getUserByEmail = email => {
+const findUser = email => {
   for (let id in users) {
     if (users[id].email === email) {
       return users[id];
@@ -34,5 +35,7 @@ const urlsForUser = id => {
 
 
 module.exports = {
-  getUserByEmail
+  generateRandomString,
+  findUser,
+  urlsForUser
 };

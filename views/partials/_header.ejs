@@ -13,16 +13,17 @@
 
     </div>
 
-    <% if (user) { %>
+    <% if (!user) { %>
+      <a href="/login">Login</a> 
+       <a href="/registration">Register</a>
+      
+    <% } else{ %>
       <form method="POST" action="/logout">
         <label for="logout">
           <h5>Logged In as: <%= user.email %>!</h5>
           <button type="submit">LogOut</button>
         </label>
       </form>
-    <% } else{ %>
-      <a href="/login">Login</a> 
-       <a href="/registration">Register</a>
     <% } %>
 
     </div>
