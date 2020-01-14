@@ -112,7 +112,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // JH sez: buggy
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(`${longURL}`);
 });
 
@@ -154,7 +154,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const email = req.body.email;
   if (findUser(email)) {
     delete urlDatabase[req.params.shortURL];
-  } else {
     res.redirect("/urls");
   }
 })
