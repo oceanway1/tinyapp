@@ -5,6 +5,8 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session')
 const bcrypt = require('bcrypt');
+const users = {};
+const urlDatabase = {};
 const { generateRandomString, findUser, urlsForUser } = require('./helpers');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -13,53 +15,27 @@ app.use(cookieSession({
   keys: ['ayy', 'what', 'up', 'my', 'dudes', 'it is wednesday'],
 }))
 
-const users = {};
-// const users = {
-//   "userRandomID": {
-//     id: "userRandomID",
-//     email: "user@example.com",
-//     password: "purple-monkey-dinosaur"
-//   },
-//   "aJ48lW": {
-//     id: "aJ48lW",
-//     email: "user2@example.com",
-//     password: "dishwasher-funk"
-//   },
-// }
-
-const urlDatabase = {
-  b6UTxQ: { longURL: "http://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "http://www.facebook.ca", userID: "userRandomID" },
-  b34KGO: { longURL: "http://www.tsn.ca", userID: "aJ00lW" },
-  i3BoGR: { longURL: "http://www.lighthouselabs.ca", userID: "abc123" }
-};
-
-
+// Redirect to login page
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-
-// pretty sure no bug!
+// Home page route
 app.get("/urls", (req, res) => {
   const user = users[req.session.userID]
   if (!user) {
     return res.redirect("/login")
   }
   let userid = users[req.session.userID].id;
-  const userURLs = urlsForUser(userid,urlDatabase);
-  // const user = users[req.session.userID]
-  console.log(users);
+  const userURLs = urlsForUser(userid, urlDatabase);
   let templateVars = { urls: userURLs, user: user };
   res.render("urls_index", templateVars);
-
 });
 
-
+// new url route
 app.get("/urls/new", (req, res) => {
   const user = users[req.session.userID]
   if (user) {
-    console.log("running for sure")
     let templateVars = { user: user };
     res.render("urls_new", templateVars);
   } else {
@@ -67,8 +43,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-
-// JH sez: buggy.  also no auth.
+// show shortURL route
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.userID]
   if (user) {
@@ -80,24 +55,23 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-// JH sez: buggy
+// redirect to longUrl page from shortURL route
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(`${longURL}`);
 });
 
-
+// post new urls 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session.userID
   };
-  console.log("after creating the new url is :", urlDatabase);
   res.redirect(`urls/${shortURL}`)
 });
 
-
+// add new url in url route
 app.post("/urls/:id", (req, res) => {
   const nURL = req.body.newURL;
   const id = req.params.id;
@@ -110,16 +84,14 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-
-// JH sez: buggy.  also no auth.
+// Route to shortened URL
 app.post("/urls/:shortURL", (req, res) => {
-  console.log('running app.post("/urls/:shortURL');
   let newLongURL = req.body.longURL;
   urlDatabase[req.params.shortURL] = newLongURL;
   res.redirect("/urls");
 })
 
-
+// Delelte url database for user
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user = users[req.session.userID]
   if (user) {
@@ -128,28 +100,28 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 })
 
-
+//login verification
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (email === "" || password === "") {
-    res.sendStatus(403);
+    return res.sendStatus(403);
   } else {
-    let user = findUser(email);
+    const user = findUser(email, users);
     if (user) {
       if (bcrypt.compareSync(password, user.password)) {
         req.session.userID = user.id;
         res.redirect("/urls");
       } else {
-        res.sendStatus(403);
+        return res.sendStatus(403);
       }
     } else {
-      res.sendStatus(403);
+      return res.sendStatus(403);
     }
   }
 });
 
-
+// route for login 
 app.get("/login", (req, res) => {
   const user = users[req.session.userID]
   if (user) {
@@ -162,13 +134,13 @@ app.get("/login", (req, res) => {
   }
 });
 
-
+// after logout process, redirect user to login page
 app.post("/logout", (req, res) => {
-  req.session = null
+  req.session = null;
   res.redirect("/urls");
 })
 
-
+//route for registratrion
 app.get("/registration", (req, res) => {
   const user = users[req.session.userID]
   let templateVars = {
@@ -177,24 +149,23 @@ app.get("/registration", (req, res) => {
   res.render("registration", templateVars);
 })
 
-
+//registration process, verifaction 
 app.post("/registration", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  let password = bcrypt.hashSync(req.body.password, 10);
   const userID = generateRandomString(6);
   if (email === '' && password === '') {
     res.sendStatus(400);
     return;
   }
-  if (findUser(email)) {
+  if (findUser(email, users)) {
     res.sendStatus(400);
     return;
   }
-  const hashedPassword = bcrypt.hashSync(password, 10);
   users[userID] = {
     id: userID,
     email: email,
-    password: hashedPassword,
+    password: password,
   };
   req.session.userID = userID;
   res.redirect("/urls");

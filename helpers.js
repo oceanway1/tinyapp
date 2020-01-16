@@ -1,25 +1,4 @@
-// const users = {
-//   "userRandomID": {
-//     id: "userRandomID",
-//     email: "user@example.com",
-//     password: "purple-monkey-dinosaur"
-//   },
-//   "aJ48lW": {
-//     id: "aJ48lW",
-//     email: "user2@example.com",
-//     password: "dishwasher-funk"
-//   },
-// }
-const users ={};
-
- 
-// const urlDatabase = {
-//   shortURL: {longURL: '', username: ""},
-//   shortURL: {longURL: '', username: "" }
-// };
-
-
-
+// function for generate random string for shortURL
 const generateRandomString = n => {
   let result = '';
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -30,8 +9,8 @@ const generateRandomString = n => {
   return result;
 };
 
-
-const findUser = email => {
+// function for check user if user is log in
+const findUser = (email, users) => {
   for (let id in users) {
     if (users[id].email === email) {
       return users[id];
@@ -40,21 +19,16 @@ const findUser = email => {
   return null;
 }
 
-
-const urlsForUser = (id,urlDatabase) => {
-  console.log(urlDatabase)
-  console.log(id)
+// Match each url in url database for each user 
+const urlsForUser = (id, urlDatabase) => {
   const allURLs = {};
   for (let shortURL in urlDatabase) {
     if (urlDatabase[shortURL].userID === id) {
       allURLs[shortURL] = urlDatabase[shortURL].longURL;
     }
   }
-
   return allURLs;
 }
-
-
 
 
 module.exports = {
