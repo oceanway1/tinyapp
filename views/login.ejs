@@ -2,17 +2,16 @@
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
-    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/login_page.css">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 
 <body>
-    <!-- <%- include('partials/_header') %> -->
-<h1>LOGIN PAGE</h1>
-  <form action="/login" method="POST">
+  <%- include('partials/_header') %>
+  <h1>LOGIN PAGE</h1>
+  <form class="p-4" action="/login" method="POST">
     <p>Email ID</p>
     <input name="email" type="email">
     <p>Password</p>
